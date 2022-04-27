@@ -5,6 +5,8 @@ import fetch from 'node-fetch'
 const listener: RequestListener = async (request, response) => {
   const parameters = new URL(request.url ?? '', `https://${request?.headers.host ?? 'example.com'}`).searchParams
 
+  console.log(request)
+
   let athleteId = parameters.get('aid')?.toUpperCase() ?? ''
 
   if (/^$|^A[1-9]?$|^A[1-9][0-9]{0,8}$/.test(athleteId) === false) {
