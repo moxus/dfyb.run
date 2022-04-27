@@ -61,6 +61,15 @@ const BarcodeForm: React.FC = () => {
   const [showResult, setShowResult] = useState(false)
   const [passUrl, setPassUrl] = useState('')
 
+  const handleAthleteLookup = useCallback(async () => {
+    const url = `${window.location.origin}/api/getAthlete?aid=${formValues.athleteId}`
+    const athleteNameResponse = await fetch(url)
+
+    if (athleteNameResponse.ok) {
+      dispatch(['athleteName', await athleteNameResponse.text()])
+    }
+  }, [formValues.athleteId, dispatch])
+
   const handleGeneratePass = useCallback(() => {
     if (!submitEnabled) {
       return
@@ -127,6 +136,7 @@ const BarcodeForm: React.FC = () => {
           placeholder="e.g. A208864"
           className={textInputClasses}
           {...registerTextInput('athleteId')}
+          onBlur={handleAthleteLookup}
         />
       </Label>
       <Label>
@@ -134,6 +144,7 @@ const BarcodeForm: React.FC = () => {
         <input
           type="text"
           className={textInputClasses}
+          readOnly={true}
           {...registerTextInput('athleteName')}
         />
       </Label>
