@@ -5,7 +5,7 @@ import fetch from 'node-fetch'
 const listener: RequestListener = async (request, response) => {
   const parameters = new URL(request.url ?? '', `https://${request?.headers.host ?? 'example.com'}`).searchParams
 
-  console.log(request.socket)
+  console.log(request.headers['x-forwarded-for'])
 
   let athleteId = parameters.get('aid')?.toUpperCase() ?? ''
 
