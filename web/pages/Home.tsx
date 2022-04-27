@@ -50,7 +50,8 @@ export const Home: React.FC = () => (
       </Paragraph>
     </div>
     <div className="mx-8 mb-12">
-      {/* <BarcodeForm /> */}
+      <BarcodeForm />
+      {/*
       <div className="bg-gray-200 dark:bg-gray-700 p-4 px-12 rounded-lg">
         <Heading className="text-center">
           Sorry!
@@ -74,6 +75,7 @@ export const Home: React.FC = () => (
           </strong>
         </Paragraph>
       </div>
+      */}
     </div>
   </div>
 )
