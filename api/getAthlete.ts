@@ -15,7 +15,10 @@ const listener: RequestListener = async (request, response) => {
 
   const headers = {
     'user-agent': request.headers['user-agent'] ?? 'Mozilla/5.0',
-    'X-Forwarded-For': request.socket.remoteAddress ?? '::0'
+    'X-Forwarded-For': request.socket.remoteAddress ?? '::0',
+    accept: 'text/html,application/xhtml+xml,application/xml',
+    'accept-encoding': 'gzip, deflate, br',
+    'accept-language': '*'
   }
 
   console.log(headers)
@@ -26,6 +29,8 @@ const listener: RequestListener = async (request, response) => {
   })
 
   if (parkrunResponse.ok === false) {
+    const output = await parkrunResponse.text()
+    console.log(output)
     return response.writeHead(502).end('Unable to retrieve data from parkrun')
   }
 
