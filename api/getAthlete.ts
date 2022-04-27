@@ -13,12 +13,16 @@ const listener: RequestListener = async (request, response) => {
 
   athleteId = athleteId.substring(1)
 
+  const headers = {
+    'user-agent': request.headers['user-agent'] ?? 'Mozilla/5.0',
+    'X-Forwarded-For': request.socket.remoteAddress ?? '::0'
+  }
+
+  console.log(headers)
+
   const parkrunResponse = await fetch(`https://www.parkrun.org.uk/parkrunner/${athleteId}/`, {
     method: 'GET',
-    headers: {
-      'user-agent': request.headers['user-agent'] ?? 'Mozilla/5.0',
-      'X-Forwarded-For': request.socket.remoteAddress ?? '::0'
-    }
+    headers
   })
 
   if (parkrunResponse.ok === false) {
