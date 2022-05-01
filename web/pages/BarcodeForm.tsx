@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useReducer, useState } from 'react'
 import QRCode from 'react-qr-code'
 import qs from 'query-string'
 import { Heading } from '../components'
+import { stringify } from 'querystring'
 
 const textInputClasses = `
   w-full
@@ -27,7 +28,7 @@ const Label: React.FC<React.LabelHTMLAttributes<HTMLLabelElement>> = ({ children
 )
 
 const Button: React.FC<Pick<React.ButtonHTMLAttributes<HTMLButtonElement>, 'disabled' | 'children' | 'onClick' | 'className'>> = ({ children, className, ...rest }) => (
-  <button {...rest} className={`font-bold text-white bg-primary dark:bg-secondary dark:text-primary disabled:opacity-25 p-4 rounded-lg lg:col-span-2 w-full whitespace-nowrap ${className ?? ''}`}>
+  <button {...rest} className={`font-bold text-white bg-primary dark:bg-secondary dark:text-primary cursor-pointer disabled:(cursor-default opacity-50) p-4 rounded-lg lg:col-span-2 w-full whitespace-nowrap ${className ?? ''}`}>
     {children}
   </button>
 )
@@ -57,36 +58,43 @@ const formReducer = (values: typeof formInitialValues, update: [string, string])
 
 const BarcodeForm: React.FC = () => {
   const [formValues, dispatch] = useReducer(formReducer, formInitialValues)
-  const [submitEnabled, setSubmitEnabled] = useState(false)
-  const [showResult, setShowResult] = useState(false)
+  const [formValid, setFormValid] = useState(false)
+  const [showBarcode, setShowBarcode] = useState(false)
+  const [athleteInfoError, setAthleteInfoError] = useState<string>()
+  const [isLoadingAthleteInfo, setIsLoadingAthleteInfo] = useState(false)
   const [passUrl, setPassUrl] = useState('')
 
-  const handleAthleteLookup = useCallback(async () => {
-    const url = `${window.location.origin}/api/getAthlete?aid=${formValues.athleteId}`
-    const athleteNameResponse = await fetch(url)
-
-    if (athleteNameResponse.ok) {
-      dispatch(['athleteName', await athleteNameResponse.text()])
-    }
-  }, [formValues.athleteId, dispatch])
-
-  const handleGeneratePass = useCallback(() => {
-    if (!submitEnabled) {
+  const handleGeneratePass = useCallback(async () => {
+    if (!formValues) {
       return
     }
 
-    const url = `${window.location.origin}/api/generate`
-    setPassUrl(qs.stringifyUrl({ url, query: formValues }))
-    setShowResult(true)
+    setIsLoadingAthleteInfo(true)
+
+    const getAthleteInfo = await fetch(`/api/athleteInfo?aid=${formValues.athleteId}`)
+    const athleteInfo = await getAthleteInfo.json() as Record<string, string>
+
+    if (getAthleteInfo.ok === false) {
+      let error = 'There was an error retrieving athlete info.\nPlease try again later.'
+      if (athleteInfo.error) {
+        error += `\n(${athleteInfo.error})`
+      }
+      setAthleteInfoError(error)
+    } else {
+      const url = `${window.location.origin}/api/generate`
+      setPassUrl(qs.stringifyUrl({ url, query: { ...formValues, athleteName: athleteInfo.name } }))
+      setShowBarcode(true)
+    }
+    setIsLoadingAthleteInfo(false)
   }, [
-    submitEnabled,
-    setShowResult,
+    formValid,
+    setShowBarcode,
     formValues
   ])
 
   const handleCancelPass = useCallback(() => {
-    setShowResult(false)
-  }, [setShowResult])
+    setShowBarcode(false)
+  }, [setShowBarcode])
 
   const registerTextInput = (name: keyof typeof formValues) => ({
     value: formValues[name],
@@ -96,17 +104,17 @@ const BarcodeForm: React.FC = () => {
   })
 
   useEffect(() => {
-    setSubmitEnabled(formValues.athleteId.length > 1)
-  }, [setSubmitEnabled, formValues.athleteId])
+    setFormValid(formValues.athleteId.length > 1)
+  }, [setFormValid, formValues.athleteId])
 
-  if (showResult) {
+  if (showBarcode) {
     return (
       <div className="flex flex-col items-center">
         <h3 className="text-primary dark:text-secondary font-header font-bold text-center text-2xl mb-4">
-          Pass ready for runner {formValues.athleteId}!
+          Pass ready for {formValues.athleteName}!
         </h3>
         <Button onClick={handleCancelPass}>
-          Go back and make changes
+          Not you? Click to go back and check your Athlete ID
         </Button>
         <p className="xl:mx-32 text-center my-4">
           Scan the QR code below with your iPhone to add your barcode to your Apple Wallet
@@ -129,23 +137,13 @@ const BarcodeForm: React.FC = () => {
       Create your virtual barcode pass
     </Heading>
     <div className="mt-4 lg:(grid gap-x-8 gap-y-4 grid-cols-0)">
-      <Label>
+      <Label className="md:col-span-2">
         Athlete ID <span className="text-red-700 dark:text-red-500 pl-1 font-normal">required</span>
         <input
           type="text"
           placeholder="e.g. A208864"
           className={textInputClasses}
           {...registerTextInput('athleteId')}
-          onBlur={handleAthleteLookup}
-        />
-      </Label>
-      <Label>
-        Athlete Name
-        <input
-          type="text"
-          className={textInputClasses}
-          readOnly={true}
-          {...registerTextInput('athleteName')}
         />
       </Label>
       <Label>
@@ -172,9 +170,17 @@ const BarcodeForm: React.FC = () => {
           {...registerTextInput('medicalInfo')}
         />
       </Label>
-      <Button disabled={!submitEnabled} onClick={handleGeneratePass} className="text-lg mt-4">
-        Generate Pass
+      <Button disabled={!formValid || isLoadingAthleteInfo} onClick={handleGeneratePass} className="text-lg mt-4">
+        <div className="flex justify-center items-center">
+          <div className={`${isLoadingAthleteInfo ? 'w-8' : 'w-0 hidden'} h-8 rounded-full animate-spin border-8 border-solid border-t-transparent dark:(border-primary border-t-transparent)`} role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <div className={isLoadingAthleteInfo ? 'w-0 hidden' : 'w-auto'}>
+            Generate Pass
+          </div>
+        </div>
       </Button>
+      <div className="md:col-span-2 font-bold whitespace-pre mt-8 text-center text-lg">{athleteInfoError}</div>
     </div>
   </>)
 }
