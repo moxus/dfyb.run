@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useReducer, useState } from 'react'
 import QRCode from 'react-qr-code'
 import qs from 'query-string'
+import IconExternal from '~icons/fa-brands/external-link-alt'
 import { Heading } from '../components'
 
 const textInputClasses = `
@@ -178,7 +179,7 @@ const BarcodeForm: React.FC = () => {
         right person.
       </p>
       <Button className='w-auto' onClick={handleOpenProfile}>
-        Open parkrun profile page
+        Open parkrun profile page <IconExternal />
       </Button>
       <p className="xl:mx-24 my-4 text-center">
         Is this the person you were expecting?
