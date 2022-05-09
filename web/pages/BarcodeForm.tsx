@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useReducer, useState } from 'react'
 import QRCode from 'react-qr-code'
 import qs from 'query-string'
-import IconExternal from '~icons/fa-brands/external-link-alt'
+import IconExternal from '~icons/fa-solid/external-link-alt'
 import { Heading } from '../components'
 
 const textInputClasses = `
