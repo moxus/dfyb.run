@@ -25,7 +25,8 @@ export const Header: React.FC = () => {
     <>
       <div className='bg-warning text-white text-center'>
         <p className='py-2'>
-          Passes cannot currently be generated as my Apple Developer account has expired 😶 and I need to buy a new one &mdash; sorry, and please check back in a few days!
+          Passes cannot currently be generated as my Apple Developer account has expired 😶 sorry - please keep an eye
+          on <a href="https://twitter.com/dfyb_run" className='underline'>twitter</a> for updates
         </p>
       </div>
       <div className="bg-primary text-white">
